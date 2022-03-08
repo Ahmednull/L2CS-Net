@@ -12,16 +12,17 @@
 ## Paper details
 
 ### Authors
-Ahmed A.Abdelrahman, Thorsten Hempel, Aly Khalifa, Ayoub Al-Hamadi, ICIP, 2022, "under review" 
+Ahmed A.Abdelrahman, Thorsten Hempel, Aly Khalifa, Ayoub Al-Hamadi, ICIP, 2022, "under review". [[Arxiv]](https://arxiv.org/abs/2203.03339)
 
-### PDF
 
 ### Abstract
 > Human gaze is a crucial cue used in various applications such as human-robot interaction and virtual reality. Recently, convolution neural network (CNN) approaches have made notable progress in predicting gaze direction. However, estimating gaze in-the-wild is still a challenging problem due to the uniqueness of eye appearance, lightning conditions, and the diversity of head pose and gaze directions. In this paper, we propose a robust CNN-based model for predicting gaze in unconstrained settings. We propose to regress each gaze angle separately to improve the per-angel prediction accuracy, which will enhance the overall gaze performance. In addition, we use two identical losses, one for each angle, to improve network learning and increase its generalization. We evaluate our model with two popular datasets collected with unconstrained settings. Our proposed model achieves state-of-the-art accuracy of 3.92 and 10.41 on MPIIGaze and Gaze360 datasets, respectively.
 
 ### Citation
 If you use any part of our code or data, please cite our paper.
-  
+```
+
+```
 
 ### Evaluation
 
