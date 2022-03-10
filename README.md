@@ -20,7 +20,14 @@ Ahmed A.Abdelrahman, Thorsten Hempel, Aly Khalifa, Ayoub Al-Hamadi, ICIP, 2022, 
 ### Citation
 If you use any part of our code or data, please cite our paper.
 ```
-
+@misc{hempel20226d,
+      title={L2CS-Net: Fine-Grained Gaze Estimation in Unconstrained Environments}, 
+      author={Ahmed A.Abdelrahman, Thorsten Hempel, Aly Khalifa, Ayoub Al-Hamadi},
+      year={2022},
+      eprint={2203.03339},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV}
+}
 ```
 
 ### Evaluation
