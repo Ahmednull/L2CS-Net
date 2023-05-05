@@ -41,7 +41,7 @@ import cv2
 gaze_pipeline = Pipeline(
     weights=CWD / 'models' / 'L2CSNet_gaze360.pkl',
     arch='ResNet50',
-    device='cpu' # or 'gpu'
+    device=torch.device('cpu') # or 'gpu'
 )
  
 cap = cv2.VideoCapture(cam)

@@ -78,6 +78,7 @@ class Pipeline:
                     # Crop image
                     img = frame[y_min:y_max, x_min:x_max]
                     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+                    img = cv2.resize(img, (224, 224))
                     face_imgs.append(img)
 
                     # Save data
