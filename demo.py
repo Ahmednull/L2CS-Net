@@ -1,4 +1,5 @@
 import argparse
+import pathlib
 import numpy as np
 import cv2
 import time
@@ -15,8 +16,9 @@ from PIL import Image, ImageOps
 
 from face_detection import RetinaFace
 
-from l2cs import select_device, draw_gaze, getArch
+from l2cs import select_device, draw_gaze, getArch, Pipeline, render
 
+CWD = pathlib.Path.cwd()
 
 def parse_args():
     """Parse input arguments."""
@@ -43,37 +45,15 @@ if __name__ == '__main__':
 
     cudnn.enabled = True
     arch=args.arch
-    batch_size = 1
     cam = args.cam_id
-    device = select_device(args.device, batch_size=batch_size)
-    snapshot_path = args.snapshot
-   
-    
+    # snapshot_path = args.snapshot
 
-    transformations = transforms.Compose([
-        transforms.Resize(448),
-        transforms.ToTensor(),
-        transforms.Normalize(
-            mean=[0.485, 0.456, 0.406],
-            std=[0.229, 0.224, 0.225]
-        )
-    ])
-    
-    model=getArch(arch, 90)
-    print('Loading snapshot.')
-    saved_state_dict = torch.load(snapshot_path, map_location=device)
-    model.load_state_dict(saved_state_dict)
-    model.to(device)
-    model.eval()
-
-
-    softmax = nn.Softmax(dim=1)
-    # detector = RetinaFace(gpu_id=device.index)
-    detector = RetinaFace()
-    idx_tensor = [idx for idx in range(90)]
-    idx_tensor = torch.FloatTensor(idx_tensor).to(device)
-    x=0
-  
+    gaze_pipeline = Pipeline(
+        weights=CWD / 'models' / 'L2CSNet_gaze360.pkl',
+        arch='ResNet50',
+        device = select_device(args.device, batch_size=1)
+    )
+     
     cap = cv2.VideoCapture(cam)
 
     # Check if the webcam is opened correctly
@@ -82,58 +62,21 @@ if __name__ == '__main__':
 
     with torch.no_grad():
         while True:
+
+            # Get frame
             success, frame = cap.read()    
             start_fps = time.time()  
+
+            if not success:
+                print("Failed to obtain frame")
+                time.sleep(0.1)
+
+            # Process frame
+            results = gaze_pipeline.step(frame)
+
+            # Visualize output
+            frame = render(frame, results)
            
-            faces = detector(frame)
-            if faces is not None: 
-                for box, landmarks, score in faces:
-                    if score < .95:
-                        continue
-                    x_min=int(box[0])
-                    if x_min < 0:
-                        x_min = 0
-                    y_min=int(box[1])
-                    if y_min < 0:
-                        y_min = 0
-                    x_max=int(box[2])
-                    y_max=int(box[3])
-                    bbox_width = x_max - x_min
-                    bbox_height = y_max - y_min
-                    # x_min = max(0,x_min-int(0.2*bbox_height))
-                    # y_min = max(0,y_min-int(0.2*bbox_width))
-                    # x_max = x_max+int(0.2*bbox_height)
-                    # y_max = y_max+int(0.2*bbox_width)
-                    # bbox_width = x_max - x_min
-                    # bbox_height = y_max - y_min
-
-                    # Crop image
-                    img = frame[y_min:y_max, x_min:x_max]
-                    img = cv2.resize(img, (224, 224))
-                    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-                    im_pil = Image.fromarray(img)
-                    img=transformations(im_pil)
-                    img  = Variable(img).to(device)
-                    img  = img.unsqueeze(0) 
-                    
-                    # gaze prediction
-                    gaze_pitch, gaze_yaw = model(img)
-                    
-                    
-                    pitch_predicted = softmax(gaze_pitch)
-                    yaw_predicted = softmax(gaze_yaw)
-                    
-                    # Get continuous predictions in degrees.
-                    pitch_predicted = torch.sum(pitch_predicted.data[0] * idx_tensor) * 4 - 180
-                    yaw_predicted = torch.sum(yaw_predicted.data[0] * idx_tensor) * 4 - 180
-                    
-                    pitch_predicted= pitch_predicted.cpu().detach().numpy()* np.pi/180.0
-                    yaw_predicted= yaw_predicted.cpu().detach().numpy()* np.pi/180.0
-
-                
-                    
-                    draw_gaze(x_min,y_min,bbox_width, bbox_height,frame,(pitch_predicted,yaw_predicted),color=(0,0,255))
-                    cv2.rectangle(frame, (x_min, y_min), (x_max, y_max), (0,255,0), 1)
             myFPS = 1.0 / (time.time() - start_fps)
             cv2.putText(frame, 'FPS: {:.1f}'.format(myFPS), (10, 20),cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 255, 0), 1, cv2.LINE_AA)
 

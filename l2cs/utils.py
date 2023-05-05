@@ -12,8 +12,19 @@ import torch.nn as nn
 import scipy.io as sio
 import cv2
 import torchvision
+from torchvision import transforms
 
 from .model import L2CS
+        
+transformations = transforms.Compose([
+    transforms.ToPILImage(),
+    transforms.Resize(448),
+    transforms.ToTensor(),
+    transforms.Normalize(
+        mean=[0.485, 0.456, 0.406],
+        std=[0.229, 0.224, 0.225]
+    )
+])
 
 def atoi(text):
     return int(text) if text.isdigit() else text
@@ -26,6 +37,24 @@ def natural_keys(text):
     '''
     return [ atoi(c) for c in re.split(r'(\d+)', text) ]
 
+def prep_input_numpy(img:np.ndarray, device:str):
+    """Preparing a Numpy Array as input to L2CS-Net."""
+
+    if len(img.shape) == 4:
+        imgs = []
+        for im in img:
+            imgs.append(transformations(im))
+        img = torch.stack(imgs)
+    else:
+        img = transformations(img)
+
+    img = img.to(device)
+
+    if len(img.shape) == 3:
+        img = img.unsqueeze(0)
+
+    return img
+
 def gazeto3d(gaze):
     gaze_gt = np.zeros([3])
     gaze_gt[0] = -np.cos(gaze[1]) * np.sin(gaze[0])
@@ -36,21 +65,6 @@ def gazeto3d(gaze):
 def angular(gaze, label):
     total = np.sum(gaze * label)
     return np.arccos(min(total/(np.linalg.norm(gaze)* np.linalg.norm(label)), 0.9999999))*180/np.pi
-
-def draw_gaze(a,b,c,d,image_in, pitchyaw, thickness=2, color=(255, 255, 0),sclae=2.0):
-    """Draw gaze angle on given image with a given eye positions."""
-    image_out = image_in
-    (h, w) = image_in.shape[:2]
-    length = w/2
-    pos = (int(a+c / 2.0), int(b+d / 2.0))
-    if len(image_out.shape) == 2 or image_out.shape[2] == 1:
-        image_out = cv2.cvtColor(image_out, cv2.COLOR_GRAY2BGR)
-    dx = -length * np.sin(pitchyaw[0]) * np.cos(pitchyaw[1])
-    dy = -length * np.sin(pitchyaw[1])
-    cv2.arrowedLine(image_out, tuple(np.round(pos).astype(np.int32)),
-                   tuple(np.round([pos[0] + dx, pos[1] + dy]).astype(int)), color,
-                   thickness, cv2.LINE_AA, tipLength=0.18)
-    return image_out    
 
 def select_device(device='', batch_size=None):
     # device = 'cpu' or '0' or '0,1,2,3'
