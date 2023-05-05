@@ -23,8 +23,8 @@ def parse_args():
     parser = argparse.ArgumentParser(
         description='Gaze evalution using model pretrained with L2CS-Net on Gaze360.')
     parser.add_argument(
-        '--gpu',dest='gpu_id', help='GPU device id to use [0]',
-        default="0", type=str)
+        '--device',dest='device', help='Device to run model: cpu or gpu:0',
+        default="cpu", type=str)
     parser.add_argument(
         '--snapshot',dest='snapshot', help='Path of model snapshot.', 
         default='output/snapshots/L2CS-gaze360-_loader-180-4/_epoch_55.pkl', type=str)
@@ -45,7 +45,7 @@ if __name__ == '__main__':
     arch=args.arch
     batch_size = 1
     cam = args.cam_id
-    gpu = select_device(args.gpu_id, batch_size=batch_size)
+    device = select_device(args.device, batch_size=batch_size)
     snapshot_path = args.snapshot
    
     
@@ -61,16 +61,17 @@ if __name__ == '__main__':
     
     model=getArch(arch, 90)
     print('Loading snapshot.')
-    saved_state_dict = torch.load(snapshot_path)
+    saved_state_dict = torch.load(snapshot_path, map_location=device)
     model.load_state_dict(saved_state_dict)
-    model.cuda(gpu)
+    model.to(device)
     model.eval()
 
 
     softmax = nn.Softmax(dim=1)
-    detector = RetinaFace(gpu_id=0)
+    # detector = RetinaFace(gpu_id=device.index)
+    detector = RetinaFace()
     idx_tensor = [idx for idx in range(90)]
-    idx_tensor = torch.FloatTensor(idx_tensor).cuda(gpu)
+    idx_tensor = torch.FloatTensor(idx_tensor).to(device)
     x=0
   
     cap = cv2.VideoCapture(cam)
@@ -112,7 +113,7 @@ if __name__ == '__main__':
                     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
                     im_pil = Image.fromarray(img)
                     img=transformations(im_pil)
-                    img  = Variable(img).cuda(gpu)
+                    img  = Variable(img).to(device)
                     img  = img.unsqueeze(0) 
                     
                     # gaze prediction
@@ -137,7 +138,7 @@ if __name__ == '__main__':
             cv2.putText(frame, 'FPS: {:.1f}'.format(myFPS), (10, 20),cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 255, 0), 1, cv2.LINE_AA)
 
             cv2.imshow("Demo",frame)
-            if cv2.waitKey(1) & 0xFF == 27:
+            if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
             success,frame = cap.read()  
     
