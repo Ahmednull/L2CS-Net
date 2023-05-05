@@ -1,6 +1,5 @@
 import pathlib
 from typing import Union
-import pdb
 
 import cv2
 import numpy as np
@@ -39,10 +38,10 @@ class Pipeline:
         # Create RetinaFace if requested
         if self.include_detector:
 
-            if device == 'cpu':
+            if device.type == 'cpu':
                 self.detector = RetinaFace()
             else:
-                self.detector = RetinaFace(gpu_id=0)
+                self.detector = RetinaFace(gpu_id=device.index)
 
             self.softmax = nn.Softmax(dim=1)
             self.idx_tensor = [idx for idx in range(90)]
