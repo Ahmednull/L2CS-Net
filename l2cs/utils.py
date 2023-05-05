@@ -1,17 +1,19 @@
-import numpy as np
-import torch
-import torch.nn as nn
+import sys
 import os
-import scipy.io as sio
-import cv2
 import math
 from math import cos, sin
 from pathlib import Path
 import subprocess
 import re
-from model import L2CS
+
+import numpy as np
+import torch
+import torch.nn as nn
+import scipy.io as sio
+import cv2
 import torchvision
-import sys
+
+from .model import L2CS
 
 def atoi(text):
     return int(text) if text.isdigit() else text
@@ -111,4 +113,19 @@ def git_describe(path=Path(__file__).parent):  # path must be a directory
     except subprocess.CalledProcessError as e:
         return ''  # not a git repository
         
-
+def getArch(arch,bins):
+    # Base network structure
+    if arch == 'ResNet18':
+        model = L2CS( torchvision.models.resnet.BasicBlock,[2, 2,  2, 2], bins)
+    elif arch == 'ResNet34':
+        model = L2CS( torchvision.models.resnet.BasicBlock,[3, 4,  6, 3], bins)
+    elif arch == 'ResNet101':
+        model = L2CS( torchvision.models.resnet.Bottleneck,[3, 4, 23, 3], bins)
+    elif arch == 'ResNet152':
+        model = L2CS( torchvision.models.resnet.Bottleneck,[3, 8, 36, 3], bins)
+    else:
+        if arch != 'ResNet50':
+            print('Invalid value for architecture is passed! '
+                'The default value of ResNet50 will be used instead!')
+        model = L2CS( torchvision.models.resnet.Bottleneck, [3, 4, 6,  3], bins)
+    return model

@@ -9,14 +9,7 @@ from torchvision import transforms
 import torch.backends.cudnn as cudnn
 import torchvision
 
-import datasets
-from utils import select_device, natural_keys, gazeto3d, angular, getArch
-from model import L2CS
-
-
-
-
-
+from l2cs import select_device, natural_keys, gazeto3d, angular, getArch, L2CS, Gaze360, Mpiigaze
 
 
 def parse_args():
@@ -106,7 +99,7 @@ if __name__ == '__main__':
     
     if data_set=="gaze360":
         
-        gaze_dataset=datasets.Gaze360(args.gaze360label_dir,args.gaze360image_dir, transformations, 180, 4, train=False)
+        gaze_dataset=Gaze360(args.gaze360label_dir,args.gaze360image_dir, transformations, 180, 4, train=False)
         test_loader = torch.utils.data.DataLoader(
             dataset=gaze_dataset,
             batch_size=batch_size,
@@ -202,7 +195,7 @@ if __name__ == '__main__':
             folder = os.listdir(args.gazeMpiilabel_dir)
             folder.sort()
             testlabelpathombined = [os.path.join(args.gazeMpiilabel_dir, j) for j in folder] 
-            gaze_dataset=datasets.Mpiigaze(testlabelpathombined,args.gazeMpiimage_dir, transformations, False, angle, fold)
+            gaze_dataset=Mpiigaze(testlabelpathombined,args.gazeMpiimage_dir, transformations, False, angle, fold)
 
             test_loader = torch.utils.data.DataLoader(
                 dataset=gaze_dataset,

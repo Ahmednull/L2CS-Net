@@ -11,9 +11,7 @@ from torchvision import transforms
 import torch.backends.cudnn as cudnn
 import torchvision
 
-import datasets
-from model import L2CS
-from utils import select_device
+from l2cs import L2CS, select_device, Gaze360, Mpiigaze
 
 
 def parse_args():
@@ -158,7 +156,7 @@ if __name__ == '__main__':
         
         
         model.cuda(gpu)
-        dataset=datasets.Gaze360(args.gaze360label_dir, args.gaze360image_dir, transformations, 180, 4)
+        dataset=Gaze360(args.gaze360label_dir, args.gaze360image_dir, transformations, 180, 4)
         print('Loading data.')
         train_loader_gaze = DataLoader(
             dataset=dataset,
@@ -274,7 +272,7 @@ if __name__ == '__main__':
             model = nn.DataParallel(model)
             model.to(gpu)
             print('Loading data.')
-            dataset=datasets.Mpiigaze(testlabelpathombined,args.gazeMpiimage_dir, transformations, True, fold)
+            dataset=Mpiigaze(testlabelpathombined,args.gazeMpiimage_dir, transformations, True, fold)
             train_loader_gaze = DataLoader(
                 dataset=dataset,
                 batch_size=int(batch_size),

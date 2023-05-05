@@ -11,11 +11,11 @@ import torch.backends.cudnn as cudnn
 import torchvision
 
 from PIL import Image
-from utils import select_device, draw_gaze
 from PIL import Image, ImageOps
 
 from face_detection import RetinaFace
-from model import L2CS
+
+from l2cs import select_device, draw_gaze, getArch
 
 
 def parse_args():
@@ -37,23 +37,6 @@ def parse_args():
 
     args = parser.parse_args()
     return args
-
-def getArch(arch,bins):
-    # Base network structure
-    if arch == 'ResNet18':
-        model = L2CS( torchvision.models.resnet.BasicBlock,[2, 2,  2, 2], bins)
-    elif arch == 'ResNet34':
-        model = L2CS( torchvision.models.resnet.BasicBlock,[3, 4,  6, 3], bins)
-    elif arch == 'ResNet101':
-        model = L2CS( torchvision.models.resnet.Bottleneck,[3, 4, 23, 3], bins)
-    elif arch == 'ResNet152':
-        model = L2CS( torchvision.models.resnet.Bottleneck,[3, 8, 36, 3], bins)
-    else:
-        if arch != 'ResNet50':
-            print('Invalid value for architecture is passed! '
-                'The default value of ResNet50 will be used instead!')
-        model = L2CS( torchvision.models.resnet.Bottleneck, [3, 4, 6,  3], bins)
-    return model
 
 if __name__ == '__main__':
     args = parse_args()
