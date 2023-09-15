@@ -1,17 +1,30 @@
-import numpy as np
-import torch
-import torch.nn as nn
+import sys
 import os
-import scipy.io as sio
-import cv2
 import math
 from math import cos, sin
 from pathlib import Path
 import subprocess
 import re
-from model import L2CS
+
+import numpy as np
+import torch
+import torch.nn as nn
+import scipy.io as sio
+import cv2
 import torchvision
-import sys
+from torchvision import transforms
+
+from .model import L2CS
+        
+transformations = transforms.Compose([
+    transforms.ToPILImage(),
+    transforms.Resize(448),
+    transforms.ToTensor(),
+    transforms.Normalize(
+        mean=[0.485, 0.456, 0.406],
+        std=[0.229, 0.224, 0.225]
+    )
+])
 
 def atoi(text):
     return int(text) if text.isdigit() else text
@@ -24,31 +37,34 @@ def natural_keys(text):
     '''
     return [ atoi(c) for c in re.split(r'(\d+)', text) ]
 
+def prep_input_numpy(img:np.ndarray, device:str):
+    """Preparing a Numpy Array as input to L2CS-Net."""
+
+    if len(img.shape) == 4:
+        imgs = []
+        for im in img:
+            imgs.append(transformations(im))
+        img = torch.stack(imgs)
+    else:
+        img = transformations(img)
+
+    img = img.to(device)
+
+    if len(img.shape) == 3:
+        img = img.unsqueeze(0)
+
+    return img
+
 def gazeto3d(gaze):
-  gaze_gt = np.zeros([3])
-  gaze_gt[0] = -np.cos(gaze[1]) * np.sin(gaze[0])
-  gaze_gt[1] = -np.sin(gaze[1])
-  gaze_gt[2] = -np.cos(gaze[1]) * np.cos(gaze[0])
-  return gaze_gt
+    gaze_gt = np.zeros([3])
+    gaze_gt[0] = -np.cos(gaze[1]) * np.sin(gaze[0])
+    gaze_gt[1] = -np.sin(gaze[1])
+    gaze_gt[2] = -np.cos(gaze[1]) * np.cos(gaze[0])
+    return gaze_gt
 
 def angular(gaze, label):
-  total = np.sum(gaze * label)
-  return np.arccos(min(total/(np.linalg.norm(gaze)* np.linalg.norm(label)), 0.9999999))*180/np.pi
-
-def draw_gaze(a,b,c,d,image_in, pitchyaw, thickness=2, color=(255, 255, 0),sclae=2.0):
-    """Draw gaze angle on given image with a given eye positions."""
-    image_out = image_in
-    (h, w) = image_in.shape[:2]
-    length = w/2
-    pos = (int(a+c / 2.0), int(b+d / 2.0))
-    if len(image_out.shape) == 2 or image_out.shape[2] == 1:
-        image_out = cv2.cvtColor(image_out, cv2.COLOR_GRAY2BGR)
-    dx = -length * np.sin(pitchyaw[0]) * np.cos(pitchyaw[1])
-    dy = -length * np.sin(pitchyaw[1])
-    cv2.arrowedLine(image_out, tuple(np.round(pos).astype(np.int32)),
-                   tuple(np.round([pos[0] + dx, pos[1] + dy]).astype(int)), color,
-                   thickness, cv2.LINE_AA, tipLength=0.18)
-    return image_out    
+    total = np.sum(gaze * label)
+    return np.arccos(min(total/(np.linalg.norm(gaze)* np.linalg.norm(label)), 0.9999999))*180/np.pi
 
 def select_device(device='', batch_size=None):
     # device = 'cpu' or '0' or '0,1,2,3'
@@ -58,7 +74,7 @@ def select_device(device='', batch_size=None):
         os.environ['CUDA_VISIBLE_DEVICES'] = '-1'  # force torch.cuda.is_available() = False
     elif device:  # non-cpu device requested
         os.environ['CUDA_VISIBLE_DEVICES'] = device  # set environment variable
-        assert torch.cuda.is_available(), f'CUDA unavailable, invalid device {device} requested'  # check availability
+        # assert torch.cuda.is_available(), f'CUDA unavailable, invalid device {device} requested'  # check availability
 
     cuda = not cpu and torch.cuda.is_available()
     if cuda:
@@ -111,4 +127,19 @@ def git_describe(path=Path(__file__).parent):  # path must be a directory
     except subprocess.CalledProcessError as e:
         return ''  # not a git repository
         
-
+def getArch(arch,bins):
+    # Base network structure
+    if arch == 'ResNet18':
+        model = L2CS( torchvision.models.resnet.BasicBlock,[2, 2,  2, 2], bins)
+    elif arch == 'ResNet34':
+        model = L2CS( torchvision.models.resnet.BasicBlock,[3, 4,  6, 3], bins)
+    elif arch == 'ResNet101':
+        model = L2CS( torchvision.models.resnet.Bottleneck,[3, 4, 23, 3], bins)
+    elif arch == 'ResNet152':
+        model = L2CS( torchvision.models.resnet.Bottleneck,[3, 8, 36, 3], bins)
+    else:
+        if arch != 'ResNet50':
+            print('Invalid value for architecture is passed! '
+                'The default value of ResNet50 will be used instead!')
+        model = L2CS( torchvision.models.resnet.Bottleneck, [3, 4, 6,  3], bins)
+    return model

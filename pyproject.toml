@@ -1,0 +1,44 @@
+[project]
+name = "l2cs"
+version = "0.0.1"
+description = "The official PyTorch implementation of L2CS-Net for gaze estimation and tracking"
+authors = [
+    {name = "Ahmed Abderlrahman"},
+    {name = "Thorsten Hempel"}
+]
+license = {file = "LICENSE.txt"}
+readme = "README.md"
+requires-python = ">3.6"
+
+keywords = ["gaze", "estimation", "eye-tracking", "deep-learning", "pytorch"]
+
+classifiers = [
+    "Programming Language :: Python :: 3"
+]
+
+dependencies = [
+    'matplotlib>=3.3.4',
+    'numpy>=1.19.5',
+    'opencv-python>=4.5.5',
+    'pandas>=1.1.5',
+    'Pillow>=8.4.0',
+    'scipy>=1.5.4',
+    'torch>=1.10.1',
+    'torchvision>=0.11.2',
+    'face_detection@git+https://github.com/elliottzheng/face-detection'
+]
+
+[project.urls]
+homepath = "https://github.com/Ahmednull/L2CS-Net"
+repository = "https://github.com/Ahmednull/L2CS-Net"
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+# https://setuptools.pypa.io/en/stable/userguide/datafiles.html
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]

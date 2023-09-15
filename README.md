@@ -11,21 +11,48 @@ ___
 ## Installation
 <img src="https://img.shields.io/badge/python%20-%2314354C.svg?&style=for-the-badge&logo=python&logoColor=white"/> <img src="https://img.shields.io/badge/PyTorch%20-%23EE4C2C.svg?&style=for-the-badge&logo=PyTorch&logoColor=white" />
 
-* Set up a virtual environment:
+Install package with the following:
+
 ```
-python3 -m venv venv
-source venv/bin/activate
+pip install git+https://github.com/edavalosanaya/L2CS-Net.git@main
 ```
-* Install required packages:
+
+Or, you can git clone the repo and install with the following:
+
 ```
-pip install -r requirements.txt  
+pip install [-e] .
+```
+
+Now you should be able to import the package with the following command:
+
+```
+$ python
+>>> import l2cs
+```
+
+## Usage
+
+Detect face and predict gaze from webcam
+
+```python
+from l2cs import Pipeline, render
+import cv2
+
+gaze_pipeline = Pipeline(
+    weights=CWD / 'models' / 'L2CSNet_gaze360.pkl',
+    arch='ResNet50',
+    device=torch.device('cpu') # or 'gpu'
+)
+ 
+cap = cv2.VideoCapture(cam)
+_, frame = cap.read()    
+
+# Process frame and visualize
+results = gaze_pipeline.step(frame)
+frame = render(frame, results)
 ```
 
 ## Demo
-* Install the face detector:
-```sh
-pip install git+https://github.com/elliottzheng/face-detection.git@master
-```
 * Download the pre-trained models from [here](https://drive.google.com/drive/folders/17p6ORr-JQJcw-eYtG2WGNiuS_qVKwdWd?usp=sharing) and Store it to *models/*.
 *  Run:
 ```
