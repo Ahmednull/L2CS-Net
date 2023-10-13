@@ -8,6 +8,10 @@
 
 ___
 
+# L2CS-Net
+
+The official PyTorch implementation of L2CS-Net for gaze estimation and tracking.
+
 ## Installation
 <img src="https://img.shields.io/badge/python%20-%2314354C.svg?&style=for-the-badge&logo=python&logoColor=white"/> <img src="https://img.shields.io/badge/PyTorch%20-%23EE4C2C.svg?&style=for-the-badge&logo=PyTorch&logoColor=white" />
 
@@ -63,6 +67,9 @@ frame = render(frame, results)
 ```
 This means the demo will run using *L2CSNet_gaze360.pkl* pretrained model
 
+## Community Contributions
+
+- [Gaze Detection and Eye Tracking: A How-To Guide](https://blog.roboflow.com/gaze-direction-position/): Use L2CS-Net through a HTTP interface with the open source Roboflow Inference project.
 
 ## MPIIGaze
 We provide the code for train and test MPIIGaze dataset with leave-one-person-out evaluation.
