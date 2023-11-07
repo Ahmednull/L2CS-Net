@@ -55,6 +55,13 @@ class Pipeline:
         landmarks = []
         scores = []
 
+        # default stacks
+        pitch = np.empty((0,1))
+        yaw = np.empty((0,1))
+        bboxes_stack = np.empty((0,1))
+        landmarks_stack = np.empty((0,1))
+        scores_stack = np.empty((0,1))
+
         if self.include_detector:
             faces = self.detector(frame)
 
@@ -86,14 +93,12 @@ class Pipeline:
                     landmarks.append(landmark)
                     scores.append(score)
 
-                # Predict gaze
-                pitch, yaw = self.predict_gaze(np.stack(face_imgs))
-
-            else:
-
-                pitch = np.empty((0,1))
-                yaw = np.empty((0,1))
-
+                if len(face_imgs) > 0:
+                    # Predict gaze
+                    pitch, yaw = self.predict_gaze(np.stack(face_imgs))
+                    bboxes_stack = np.stack(bboxes)
+                    landmarks_stack = np.stack(landmarks)
+                    scores_stack = np.stack(scores)
         else:
             pitch, yaw = self.predict_gaze(frame)
 
@@ -101,9 +106,9 @@ class Pipeline:
         results = GazeResultContainer(
             pitch=pitch,
             yaw=yaw,
-            bboxes=np.stack(bboxes),
-            landmarks=np.stack(landmarks),
-            scores=np.stack(scores)
+            bboxes=bboxes_stack,
+            landmarks=landmarks_stack,
+            scores=scores_stack
         )
 
         return results
