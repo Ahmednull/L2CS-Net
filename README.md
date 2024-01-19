@@ -18,7 +18,7 @@ The official PyTorch implementation of L2CS-Net for gaze estimation and tracking
 Install package with the following:
 
 ```
-pip install git+https://github.com/edavalosanaya/L2CS-Net.git@main
+pip install git+https://github.com/Ahmednull/L2CS-Net.git@main
 ```
 
 Or, you can git clone the repo and install with the following:
