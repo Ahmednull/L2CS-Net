@@ -47,13 +47,22 @@ gaze_pipeline = Pipeline(
     arch='ResNet50',
     device=torch.device('cpu') # or 'gpu'
 )
- 
 cap = cv2.VideoCapture(cam)
-_, frame = cap.read()    
+while True:
+   _, frame = cap.read()
+   cv2.imshow('frame', frame)
 
-# Process frame and visualize
-results = gaze_pipeline.step(frame)
-frame = render(frame, results)
+   # Process frame and visualize
+   try:
+       results = gaze_pipeline.step(frame)
+       frame = render(frame, results)
+   except Exception as e:
+       print(e)
+       continue
+   cv2.imshow('frame', frame)
+   cv2.waitKey(1)
+   if cv2.waitKey(1) & 0xFF == ord('q'):
+       break
 ```
 
 ## Demo
